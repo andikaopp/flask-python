@@ -4,6 +4,7 @@ from flask import Flask, render_template, request, redirect, url_for, session
 from flask_mysqldb import MySQL
 import MySQLdb.cursors
 import re
+import requests
 
 
 app = Flask(__name__)
@@ -17,6 +18,28 @@ app.config['MYSQL_PASSWORD'] = ''
 app.config['MYSQL_DB'] = 'flask_python'
 
 mysql = MySQL(app)
+
+# Fungsi untuk mendapatkan data cuaca dari API
+def get_weather(city):
+    api_key = '03f466a3913e64e7f6230d77c62ca3cf'  # Ganti dengan kunci API milikmu
+    base_url = 'http://api.openweathermap.org/data/2.5/weather'
+    params = {'q': city, 'appid': api_key, 'units': 'metric'}
+    response = requests.get(base_url, params=params)
+    weather_data = response.json()
+    return weather_data
+
+# Route untuk halaman index
+@app.route('/suhu')
+def index():
+    city = 'Jakarta'  # Ganti dengan kota yang ingin kamu tampilkan cuacanya
+    weather_data = get_weather(city)
+    # Ambil informasi cuaca dari respons API
+    weather = {
+        'description': weather_data['weather'][0]['description'],
+        'temperature': weather_data['main']['temp'],
+        'humidity': weather_data['main']['humidity'],
+    }
+    return render_template('suhu.html', weather=weather)
 
 @app.route('/')
 @app.route('/login', methods =['GET', 'POST'])
